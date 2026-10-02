@@ -1,4 +1,4 @@
-# PR Accurate App V4
+# PR Accurate App V5
 
 Web app MVP Purchase Request + approval + Accurate Online integration gate.
 
@@ -11,7 +11,7 @@ Web app MVP Purchase Request + approval + Accurate Online integration gate.
 5. Tambahkan `AUTH_SECRET` dengan random string yang panjang.
 6. Deploy.
 
-V4 sengaja memisahkan proses build dan database:
+V5 sengaja memisahkan proses build dan database:
 
 - Build: `npx prisma generate && npm run build`
 - Start/deploy: `npx prisma db push && node prisma/seed.mjs && npm run start`
