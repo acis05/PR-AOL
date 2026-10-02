@@ -1,42 +1,36 @@
-# PR Accurate App
-Web Purchase Request dengan isolasi data requester, approval, procurement integration gate, PostgreSQL, dan adapter Accurate Online.
+# PR Accurate App V4
 
-## Fitur MVP
-- Login + role REQUESTER / APPROVER / PROCUREMENT / ADMIN
-- Requester hanya dapat membuka PR miliknya (kecuali approver yang ditugaskan / procurement / admin)
-- Create PR dari cache item Accurate
-- Approval / rejection
-- Integration Gate dan retry status
-- Audit log
-- Sinkronisasi master item dari Accurate
-- Siap deploy Railway
+Web app MVP Purchase Request + approval + Accurate Online integration gate.
 
-## Local
-1. `cp .env.example .env` lalu isi `DATABASE_URL` dan `AUTH_SECRET`.
-2. `npm install`
-3. `npx prisma db push`
-4. `npx tsx prisma/seed.ts` (atau jalankan seed via perintah Node/tsx yang tersedia)
-5. `npm run dev`
+## Railway deployment
 
-Semua akun demo memakai password `Admin123!`.
+1. Upload seluruh isi folder ini ke root repository GitHub.
+2. Buat project Railway dari repository tersebut.
+3. Tambahkan service PostgreSQL di project Railway yang sama.
+4. Pastikan aplikasi memiliki variable `DATABASE_URL` yang menunjuk ke PostgreSQL Railway.
+5. Tambahkan `AUTH_SECRET` dengan random string yang panjang.
+6. Deploy.
 
-## Railway
-1. Push repository ini ke GitHub.
-2. Railway > New Project > Deploy from GitHub Repo.
-3. Tambahkan PostgreSQL service.
-4. Pastikan `DATABASE_URL` tersedia pada app service; tambahkan `AUTH_SECRET`.
-5. Deploy. Build command di `railway.json` menjalankan Prisma `db push` dan Next build.
-6. Untuk data demo, jalankan sekali dari Railway shell: `npx tsx prisma/seed.ts`.
+V4 sengaja memisahkan proses build dan database:
 
-## Accurate Online
-Set variables `ACCURATE_ACCESS_TOKEN`, `ACCURATE_HOST`, `ACCURATE_SESSION_ID`. Tombol Settings > Sync Items memanggil `/accurate/api/item/list.do`.
+- Build: `npx prisma generate && npm run build`
+- Start/deploy: `npx prisma db push && node prisma/seed.mjs && npm run start`
 
-Push PR sengaja memakai `ACCURATE_PR_SAVE_PATH` yang configurable. Accurate menyediakan banyak API dan scope; endpoint transaksi serta field final harus dicocokkan dengan **Daftar API pada Developer Area akun Anda** sebelum produksi. Jangan menebak endpoint transaksi.
+Ini penting karena private hostname `postgres.railway.internal` dapat tidak tersedia saat image build, tetapi tersedia ketika service berjalan di private network Railway.
 
-## Production checklist
-- Ganti semua password demo / jangan seed demo di production permanen.
-- Gunakan AUTH_SECRET acak >= 32 byte.
-- Tambahkan CSRF/rate limiting/SSO bila digunakan secara luas.
-- Tambahkan attachment object storage jika diperlukan.
-- Ubah create PR UI menjadi multi-item (schema sudah mendukung).
-- Implementasikan approval rules sesuai departemen/nominal perusahaan.
+## Login demo
+
+Setelah deployment berhasil, seed idempotent otomatis membuat:
+
+- Admin: `admin@example.com` / `Admin123!`
+- Requester: `requester@example.com` / `Admin123!`
+- Approver: `approver@example.com` / `Admin123!`
+- Procurement: `procurement@example.com` / `Admin123!`
+
+Ganti password/demo account sebelum production.
+
+## Environment variables
+
+Lihat `.env.example`.
+
+Untuk Accurate Online, isi token/host/session dan endpoint transaksi sesuai API Developer Accurate yang digunakan perusahaan Anda.
