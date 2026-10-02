@@ -1,11 +1,122 @@
-generator client { provider = "prisma-client-js" }
-datasource db { provider = "postgresql" url = env("DATABASE_URL") }
-enum Role { REQUESTER APPROVER PROCUREMENT ADMIN }
-enum PRStatus { DRAFT PENDING_APPROVAL REVISION_REQUIRED REJECTED APPROVED READY_TO_SYNC SYNCED SYNC_FAILED }
-enum ApprovalStatus { PENDING APPROVED REJECTED }
-model User { id String @id @default(cuid()) name String email String @unique passwordHash String role Role @default(REQUESTER) department String? prs PurchaseRequest[] approvals Approval[] @relation("Approver") createdAt DateTime @default(now()) }
-model PurchaseRequest { id String @id @default(cuid()) number String @unique requesterId String requester User @relation(fields:[requesterId],references:[id]) department String purpose String neededDate DateTime? status PRStatus @default(DRAFT) totalAmount Decimal @default(0) accurateId String? accurateNumber String? items PRItem[] approvals Approval[] logs AuditLog[] createdAt DateTime @default(now()) updatedAt DateTime @updatedAt }
-model PRItem { id String @id @default(cuid()) prId String pr PurchaseRequest @relation(fields:[prId],references:[id],onDelete:Cascade) accurateItemId String? itemCode String itemName String qty Decimal unit String @default("PCS") estimatedPrice Decimal @default(0) notes String? }
-model Approval { id String @id @default(cuid()) prId String pr PurchaseRequest @relation(fields:[prId],references:[id],onDelete:Cascade) approverId String approver User @relation("Approver",fields:[approverId],references:[id]) level Int @default(1) status ApprovalStatus @default(PENDING) comments String? actedAt DateTime? createdAt DateTime @default(now()) }
-model AccurateItem { id String @id @default(cuid()) accurateId String @unique code String name String unit String @default("PCS") active Boolean @default(true) syncedAt DateTime @default(now()) }
-model AuditLog { id String @id @default(cuid()) prId String? pr PurchaseRequest? @relation(fields:[prId],references:[id],onDelete:SetNull) userId String? action String detail String? createdAt DateTime @default(now()) }
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  REQUESTER
+  APPROVER
+  PROCUREMENT
+  ADMIN
+}
+
+enum PRStatus {
+  DRAFT
+  PENDING_APPROVAL
+  REVISION_REQUIRED
+  REJECTED
+  APPROVED
+  READY_TO_SYNC
+  SYNCED
+  SYNC_FAILED
+}
+
+enum ApprovalStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+model User {
+  id           String            @id @default(cuid())
+  name         String
+  email        String            @unique
+  passwordHash String
+  role         Role              @default(REQUESTER)
+  department   String?
+  prs          PurchaseRequest[]
+  approvals    Approval[]        @relation("Approver")
+  createdAt    DateTime          @default(now())
+}
+
+model PurchaseRequest {
+  id             String       @id @default(cuid())
+  number         String       @unique
+  requesterId    String
+  requester      User         @relation(fields: [requesterId], references: [id])
+  department     String
+  purpose        String
+  neededDate     DateTime?
+  status         PRStatus     @default(DRAFT)
+  totalAmount    Decimal      @default(0)
+  accurateId     String?
+  accurateNumber String?
+  items          PRItem[]
+  approvals      Approval[]
+  logs           AuditLog[]
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+
+  @@index([requesterId])
+  @@index([status])
+}
+
+model PRItem {
+  id             String          @id @default(cuid())
+  prId           String
+  pr             PurchaseRequest @relation(fields: [prId], references: [id], onDelete: Cascade)
+  accurateItemId String?
+  itemCode       String
+  itemName       String
+  qty            Decimal
+  unit           String          @default("PCS")
+  estimatedPrice Decimal         @default(0)
+  notes          String?
+
+  @@index([prId])
+}
+
+model Approval {
+  id         String          @id @default(cuid())
+  prId       String
+  pr         PurchaseRequest @relation(fields: [prId], references: [id], onDelete: Cascade)
+  approverId String
+  approver   User            @relation("Approver", fields: [approverId], references: [id])
+  level      Int             @default(1)
+  status     ApprovalStatus  @default(PENDING)
+  comments   String?
+  actedAt    DateTime?
+  createdAt  DateTime        @default(now())
+
+  @@index([prId])
+  @@index([approverId, status])
+}
+
+model AccurateItem {
+  id         String   @id @default(cuid())
+  accurateId String   @unique
+  code       String
+  name       String
+  unit       String   @default("PCS")
+  active     Boolean  @default(true)
+  syncedAt   DateTime @default(now())
+
+  @@index([code])
+  @@index([name])
+}
+
+model AuditLog {
+  id        String           @id @default(cuid())
+  prId      String?
+  pr        PurchaseRequest? @relation(fields: [prId], references: [id], onDelete: SetNull)
+  userId    String?
+  action    String
+  detail    String?
+  createdAt DateTime         @default(now())
+
+  @@index([prId])
+}
