@@ -34,3 +34,7 @@ Ganti password/demo account sebelum production.
 Lihat `.env.example`.
 
 Untuk Accurate Online, isi token/host/session dan endpoint transaksi sesuai API Developer Accurate yang digunakan perusahaan Anda.
+
+
+## V6 redirect fix
+Semua redirect pada Route Handler menggunakan header `Location` relatif (contoh `/dashboard`) agar reverse proxy Railway tidak mengubah tujuan menjadi `localhost:8080`. Tidak perlu mengatur URL/domain Railway secara hard-code.
